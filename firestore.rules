@@ -1,0 +1,29 @@
+rules_version = '2';
+
+// PHASE 1 RULES — NO AUTHENTICATION.
+//
+// The app identifies people with a name stored in localStorage, so there is no
+// uid to check. These rules let anyone who knows the project id read and write
+// the three collections the app uses. That is acceptable for a private two-person
+// tracker, NOT for a public URL. When auth arrives in a later phase, replace the
+// `if true` conditions with `if request.auth != null`.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /workoutDays/{dateKey} {
+      allow read, write: if true;
+    }
+
+    match /rainStatus/{dateKey} {
+      allow read, write: if true;
+    }
+
+    match /meta/{docId} {
+      allow read, write: if true;
+    }
+
+    // Everything else stays locked down.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

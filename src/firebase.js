@@ -1,7 +1,12 @@
-import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
+/**
+ * Firebase bootstrap.
+ *
+ * The SDK is imported dynamically (see getFirestoreDb) so that the app never
+ * downloads Firebase at all when it runs against the local demo store. Your keys
+ * come from Vite env vars — copy .env.example to .env.local and fill them in.
+ */
 
-const firebaseConfig = {
+export const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
@@ -10,6 +15,39 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
-const app = initializeApp(firebaseConfig);
+const REQUIRED_KEYS = ['apiKey', 'projectId', 'appId'];
 
-export const db = getFirestore(app);
+export const missingFirebaseKeys = REQUIRED_KEYS.filter((key) => !firebaseConfig[key]);
+
+const requestedBackend = String(import.meta.env.VITE_DATA_BACKEND ?? 'auto').toLowerCase();
+const canUseFirebase = missingFirebaseKeys.length === 0;
+const useLocalBackend =
+  requestedBackend === 'local' || (requestedBackend === 'auto' && !canUseFirebase);
+
+export const backend = useLocalBackend ? 'local' : 'firestore';
+
+let dbPromise = null;
+
+/** Lazily create the Firestore instance (only used when backend === 'firestore'). */
+export function getFirestoreDb() {
+  if (dbPromise) return dbPromise;
+
+  dbPromise = (async () => {
+    const [{ initializeApp }, { initializeFirestore }] = await Promise.all([
+      import('firebase/app'),
+      import('firebase/firestore'),
+    ]);
+    const app = initializeApp(firebaseConfig);
+    // ignoreUndefinedProperties keeps optional fields out of the way.
+    return initializeFirestore(app, { ignoreUndefinedProperties: true });
+  })();
+
+  return dbPromise;
+}
+
+if (backend === 'local') {
+  console.info(
+    '[workout-tracker] Running with the local demo store. Add your Firebase keys ' +
+      'to .env.local to sync across devices.',
+  );
+}

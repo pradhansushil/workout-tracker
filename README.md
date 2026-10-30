@@ -46,7 +46,7 @@ npm run preview # serve the production build locally
 1. Create a project at [console.firebase.google.com](https://console.firebase.google.com)
    and add a **Web app**. Copy the config object it gives you.
 2. Enable **Firestore Database** (production mode is fine) in your region.
-3. Paste your values into `.env.local` (copy `.env.example` first):
+3. Create a file named `.env` in the project root and paste your values into it:
 
    ```dotenv
    VITE_FIREBASE_API_KEY=...

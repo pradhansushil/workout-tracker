@@ -1,19 +1,29 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from "react";
 
-import AppHeader from './AppHeader.jsx';
-import BannerStack from './BannerStack.jsx';
-import BasketballPanel from './BasketballPanel.jsx';
-import DayHero from './DayHero.jsx';
-import ExerciseList from './ExerciseList.jsx';
-import PastDayPanel from './PastDayPanel.jsx';
-import RestDayPanel from './RestDayPanel.jsx';
-import SquadPanel from './SquadPanel.jsx';
-import WallSitsCard from './WallSitsCard.jsx';
-import WeekStrip from './WeekStrip.jsx';
-import WeightCard from './WeightCard.jsx';
-import { repository } from '../lib/repository.js';
-import { DAY_KINDS, fromDateKey, getBaseDayKind, getWeekPreview } from '../lib/schedule.js';
-import { getBodyWeight, getDayBanners, getExercisesForType, getParticipantEntry } from '../lib/workout.js';
+import AppHeader from "./AppHeader.jsx";
+import BannerStack from "./BannerStack.jsx";
+import BasketballPanel from "./BasketballPanel.jsx";
+import DayHero from "./DayHero.jsx";
+import ExerciseList from "./ExerciseList.jsx";
+import PastDayPanel from "./PastDayPanel.jsx";
+import RestDayPanel from "./RestDayPanel.jsx";
+import SquadPanel from "./SquadPanel.jsx";
+import WallSitsCard from "./WallSitsCard.jsx";
+import WeekStrip from "./WeekStrip.jsx";
+import WeightCard from "./WeightCard.jsx";
+import { repository } from "../lib/repository.js";
+import {
+  DAY_KINDS,
+  fromDateKey,
+  getBaseDayKind,
+  getWeekPreview,
+} from "../lib/schedule.js";
+import {
+  getBodyWeight,
+  getDayBanners,
+  getExercisesForType,
+  getParticipantEntry,
+} from "../lib/workout.js";
 
 export default function Dashboard({
   plan,
@@ -45,12 +55,21 @@ export default function Dashboard({
   const [savedTypes, setSavedTypes] = useState({});
 
   const baseWeek = useMemo(() => {
-    const anchor = new Date(today.getFullYear(), today.getMonth(), today.getDate() + weekOffset * 7);
-    return getWeekPreview(anchor, { rainedOut: weekOffset === 0 && plan.rainedOut, todayKey });
+    const anchor = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate() + weekOffset * 7
+    );
+    return getWeekPreview(anchor, {
+      rainedOut: weekOffset === 0 && plan.rainedOut,
+      todayKey,
+    });
   }, [today, todayKey, weekOffset, plan.rainedOut]);
 
   useEffect(() => {
-    const pastKeys = baseWeek.filter((day) => day.isPast).map((day) => day.dateKey);
+    const pastKeys = baseWeek
+      .filter((day) => day.isPast)
+      .map((day) => day.dateKey);
     if (pastKeys.length === 0) return undefined;
     let active = true;
     repository
@@ -67,9 +86,11 @@ export default function Dashboard({
   const week = useMemo(
     () =>
       baseWeek.map((day) =>
-        day.isPast && savedTypes[day.dateKey] ? { ...day, dayKind: DAY_KINDS.GYM } : day,
+        day.isPast && savedTypes[day.dateKey]
+          ? { ...day, dayKind: DAY_KINDS.GYM }
+          : day
       ),
-    [baseWeek, savedTypes],
+    [baseWeek, savedTypes]
   );
 
   // What the page is showing: today's live plan, or a read-only past day.
@@ -103,7 +124,10 @@ export default function Dashboard({
     };
   }, [isPast, plan, myEntry, exercises, dayDoc, viewKey, viewDoc, identity]);
 
-  const banners = getDayBanners({ dayKind: plan.dayKind, workoutType: plan.workoutType });
+  const banners = getDayBanners({
+    dayKind: plan.dayKind,
+    workoutType: plan.workoutType,
+  });
   const showSession = view.plan.dayKind === DAY_KINDS.GYM && Boolean(view.type);
   const showMissingPast = isPast && !showSession;
 
@@ -121,14 +145,18 @@ export default function Dashboard({
           <div>
             <strong>Sync problem.</strong> {error}
           </div>
-          <button type="button" className="banner__dismiss" onClick={onDismissError}>
+          <button
+            type="button"
+            className="banner__dismiss"
+            onClick={onDismissError}
+          >
             Dismiss
           </button>
         </div>
       ) : null}
 
       <main className="app__main">
-        <div className={`top-row ${showSession ? 'top-row--split' : ''}`}>
+        <div className={`top-row ${showSession ? "top-row--split" : ""}`}>
           <DayHero
             plan={view.plan}
             todayKey={isPast ? viewKey : todayKey}
@@ -137,12 +165,15 @@ export default function Dashboard({
             onToggleRain={onToggleRain}
             isPast={isPast}
             onBackToToday={() => onSelectDay(todayKey)}
+            loading={viewLoading} // ← new
           />
           {showSession ? (
             <div className="top-side">
               <SquadPanel
                 people={people}
-                participants={isPast ? viewDoc?.participants : dayDoc?.participants}
+                participants={
+                  isPast ? viewDoc?.participants : dayDoc?.participants
+                }
                 exercises={view.exercises}
                 identity={identity}
                 readOnly={isPast}
@@ -167,7 +198,9 @@ export default function Dashboard({
 
         {isPast ? null : <BannerStack banners={banners} />}
 
-        {!isPast && banners.wallSits ? <WallSitsCard banner={banners.wallSits} /> : null}
+        {!isPast && banners.wallSits ? (
+          <WallSitsCard banner={banners.wallSits} />
+        ) : null}
 
         {showSession ? (
           <ExerciseList
@@ -191,13 +224,15 @@ export default function Dashboard({
           />
         ) : null}
 
-        {!isPast && plan.dayKind === DAY_KINDS.REST ? <RestDayPanel today={today} /> : null}
+        {!isPast && plan.dayKind === DAY_KINDS.REST ? (
+          <RestDayPanel today={today} />
+        ) : null}
       </main>
 
       <footer className="app__footer">
         <span>lbs only</span>
         <span className={`backend-tag backend-tag--${backend}`}>
-          {backend === 'firestore' ? 'Live sync' : 'Local demo data'}
+          {backend === "firestore" ? "Live sync" : "Local demo data"}
         </span>
       </footer>
     </div>

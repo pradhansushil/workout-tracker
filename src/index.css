@@ -434,6 +434,10 @@ ul {
   background: rgba(140, 150, 170, 0.12);
 }
 
+.hero--loading::after {
+  background: rgba(140, 150, 170, 0.12);
+}
+
 .hero__top {
   display: flex;
   align-items: flex-start;

@@ -94,6 +94,8 @@ export default function Dashboard({
   );
 
   // What the page is showing: today's live plan, or a read-only past day.
+  // While the past-day document is still loading, do not invent a calendar
+  // dayKind (Basketball/Rest) — that was the source of the title flash.
   const view = useMemo(() => {
     if (!isPast) {
       return {
@@ -105,6 +107,23 @@ export default function Dashboard({
       };
     }
     const date = fromDateKey(viewKey);
+    if (viewLoading) {
+      return {
+        plan: {
+          date,
+          dateKey: viewKey,
+          baseKind: null,
+          dayKind: null,
+          workoutType: null,
+          rainedOut: false,
+          rainEligible: false,
+        },
+        entry: null,
+        exercises: [],
+        type: null,
+        canEdit: false,
+      };
+    }
     const type = viewDoc?.type ?? null;
     const baseKind = date ? getBaseDayKind(date) : DAY_KINDS.REST;
     return {
@@ -122,7 +141,7 @@ export default function Dashboard({
       type,
       canEdit: false,
     };
-  }, [isPast, plan, myEntry, exercises, dayDoc, viewKey, viewDoc, identity]);
+  }, [isPast, plan, myEntry, exercises, dayDoc, viewKey, viewDoc, viewLoading, identity]);
 
   const banners = getDayBanners({
     dayKind: plan.dayKind,

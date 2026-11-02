@@ -42,15 +42,21 @@ export default function DayHero({
   onBackToToday,
   loading = false,
 }) {
-  // While the past-day document is still loading, stay neutral so we don't
-  // flash the calendar default (e.g. "Basketball") before the real type arrives.
+  // Past-day doc is still in flight — never paint a calendar guess (Basketball/Rest)
+  // that will jump once the real workoutDays document arrives.
   if (loading) {
     return (
-      <section className="hero hero--loading">
+      <section className="hero hero--loading" aria-busy="true">
         <div className="hero__top">
           <span className="hero__eyebrow">Loading…</span>
         </div>
         <h1 className="hero__title">Loading</h1>
+        {isPast ? (
+          <button type="button" className="btn btn--quiet hero__rain-undo" onClick={onBackToToday}>
+            Back to today
+          </button>
+        ) : null}
+        <span className="sr-only">{todayKey}</span>
       </section>
     );
   }

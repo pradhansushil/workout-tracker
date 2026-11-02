@@ -100,10 +100,18 @@ export default function App() {
   }, [todayKey]);
 
   // Only subscribe to a second day while the person is looking at a past one.
+  // Clear viewState on leave / key change so the UI never paints a stale day
+  // (or a calendar guess) while the new document is in flight.
   const isPastView = Boolean(viewKey) && viewKey < todayKey;
   useEffect(() => {
-    if (!isPastView) return undefined;
+    if (!isPastView) {
+      setViewState(undefined);
+      return undefined;
+    }
     let active = true;
+    setViewState((current) =>
+      current?.dateKey === viewKey ? current : undefined,
+    );
     const unsubscribe = repository.subscribeDay(
       viewKey,
       (doc) => {

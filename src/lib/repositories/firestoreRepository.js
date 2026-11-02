@@ -300,9 +300,21 @@ export function createFirestoreRepository(db) {
     );
   }
 
+  /** For each date, the saved workout type ("Upper"/"Lower"), or null if no gym session was saved. */
+  async function getDayTypes(dateKeys) {
+    const entries = await Promise.all(
+      dateKeys.map(async (key) => {
+        const snap = await getDoc(dayRef(key));
+        return [key, snap.exists() ? snap.data()?.type ?? null : null];
+      }),
+    );
+    return Object.fromEntries(entries);
+  }
+
   return {
     backend: 'firestore',
     subscribeDay,
+    getDayTypes,
     subscribeRain,
     subscribePeople,
     subscribeSchedule,

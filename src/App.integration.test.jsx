@@ -323,3 +323,27 @@ describe('App — adding a person', () => {
     expect(within(squad).getByText('Person A')).toBeTruthy();
   });
 });
+
+describe('App — week strip dots', () => {
+  it('shows a gym dot on a past rain-swapped day that has a saved workout', async () => {
+    setNow('2026-10-30T09:00:00'); // Friday
+    localStorage.setItem('workoutTracker:identity', 'Person A');
+    localStorage.setItem(
+      'workoutTracker:demo:schedule',
+      JSON.stringify({ lastWorkoutType: 'Upper', lastWorkoutDate: '2026-10-29' }),
+    );
+    // Tuesday the 27th is normally basketball, but a workout was saved (it rained).
+    localStorage.setItem(
+      'workoutTracker:demo:day:2026-10-27',
+      JSON.stringify({ type: 'Lower', date: '2026-10-27', participants: {} }),
+    );
+    render(<App />);
+
+    await waitFor(() => {
+      const buttons = screen.getAllByRole('button', { name: /Oct 27/ });
+      expect(buttons[0].getAttribute('aria-label')).toMatch(/Gym/);
+    });
+    // Wednesday the 28th has nothing saved, so it keeps the normal basketball label.
+    expect(screen.getAllByRole('button', { name: /Oct 28/ })[0].getAttribute('aria-label')).toMatch(/Basketball/);
+  });
+});

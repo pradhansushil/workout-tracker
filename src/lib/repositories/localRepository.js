@@ -248,6 +248,12 @@ export function createLocalRepository() {
   }
 
   /** Test/tooling helper — wipes the demo store. */
+  async function getDayTypes(dateKeys) {
+    return Object.fromEntries(
+      dateKeys.map((key) => [key, read(KEYS.day(key), null)?.type ?? null]),
+    );
+  }
+
   function resetDemoData() {
     for (const key of Object.keys(localStorage)) {
       if (key.startsWith(PREFIX)) remove(key);
@@ -260,6 +266,7 @@ export function createLocalRepository() {
   return {
     backend: 'local',
     subscribeDay,
+    getDayTypes,
     subscribeRain,
     subscribePeople,
     subscribeSchedule,

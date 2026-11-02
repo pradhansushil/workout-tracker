@@ -40,7 +40,21 @@ export default function DayHero({
   onToggleRain,
   isPast = false,
   onBackToToday,
+  loading = false,
 }) {
+  // While the past-day document is still loading, stay neutral so we don't
+  // flash the calendar default (e.g. "Basketball") before the real type arrives.
+  if (loading) {
+    return (
+      <section className="hero hero--loading">
+        <div className="hero__top">
+          <span className="hero__eyebrow">Loading…</span>
+        </div>
+        <h1 className="hero__title">Loading</h1>
+      </section>
+    );
+  }
+
   const isGym = plan.dayKind === DAY_KINDS.GYM;
   const stats = getParticipantStats(myEntry, exercises);
   const title = getDayTitle(plan.dayKind, plan.workoutType);

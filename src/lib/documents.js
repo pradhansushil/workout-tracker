@@ -134,6 +134,19 @@ export function applyWeight({ entry, type, exerciseId, weight, exercise }) {
   return { ...nextEntry, isCompleted: computeCompletion(nextEntry, type) };
 }
 
+/**
+ * Return a NEW participant entry with the person's body weight set.
+ * `weight` is `null` when cleared, otherwise a number between 0 and 2000 (lbs).
+ */
+export function applyBodyWeight({ entry, type, weight }) {
+  const numeric = weight === null || weight === '' ? null : Number(weight);
+  if (numeric !== null && (!Number.isFinite(numeric) || numeric < 0 || numeric > 2000)) {
+    throw new Error('Weight must be a number between 0 and 2000.');
+  }
+  const base = entry ?? createPersonEntry(type);
+  return { ...base, bodyWeight: numeric };
+}
+
 /** Merge people into a day doc, creating unchecked entries for anyone new. */
 export function addMissingParticipants(dayDoc, people) {
   if (!dayDoc?.type) return dayDoc;

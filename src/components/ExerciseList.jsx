@@ -3,20 +3,19 @@ import ExerciseCard from './ExerciseCard.jsx';
 export default function ExerciseList({
   exercises,
   entry,
-  people,
-  participants,
-  identity,
   onToggleSet,
-  onCommitWeight,
   disabled = false,
+  readOnly = false,
 }) {
+  let hint = 'Tap a set to check it off';
+  if (readOnly) hint = 'Past session — view only';
+  else if (disabled) hint = 'Setting up today’s session…';
+
   return (
-    <section className="exercise-list" aria-label="Today’s exercises">
+    <section className="exercise-list" aria-label="Exercises">
       <div className="section-heading">
         <h2 className="section-title">Exercises</h2>
-        <span className="section-hint">
-          {disabled ? 'Setting up today’s session…' : 'Tap a set to check it off'}
-        </span>
+        <span className="section-hint">{hint}</span>
       </div>
       {exercises.map((exercise, index) => (
         <ExerciseCard
@@ -24,17 +23,13 @@ export default function ExerciseList({
           exercise={exercise}
           index={index}
           entry={entry}
-          people={people}
-          participants={participants}
-          identity={identity}
           onToggleSet={onToggleSet}
-          onCommitWeight={onCommitWeight}
-          disabled={disabled}
+          disabled={disabled || readOnly}
         />
       ))}
-      <p className="exercise-list__note">
-        Sets and weights save as you go. Only you can edit your row.
-      </p>
+      {readOnly ? null : (
+        <p className="exercise-list__note">Sets save as you go. Only you can edit your own sets.</p>
+      )}
     </section>
   );
 }

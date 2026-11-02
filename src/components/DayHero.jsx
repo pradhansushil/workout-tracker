@@ -1,4 +1,5 @@
 import ProgressRing from './ProgressRing.jsx';
+import { formatShortDate } from '../lib/dates.js';
 import { DAY_KINDS, getDaySubtitle, getDayTitle } from '../lib/schedule.js';
 import { getParticipantStats } from '../lib/workout.js';
 
@@ -31,7 +32,15 @@ function KindGlyph({ dayKind }) {
   );
 }
 
-export default function DayHero({ plan, todayKey, myEntry, exercises, onToggleRain }) {
+export default function DayHero({
+  plan,
+  todayKey,
+  myEntry,
+  exercises,
+  onToggleRain,
+  isPast = false,
+  onBackToToday,
+}) {
   const isGym = plan.dayKind === DAY_KINDS.GYM;
   const stats = getParticipantStats(myEntry, exercises);
   const title = getDayTitle(plan.dayKind, plan.workoutType);
@@ -42,6 +51,7 @@ export default function DayHero({ plan, todayKey, myEntry, exercises, onToggleRa
       <div className="hero__top">
         <span className="hero__eyebrow">
           <KindGlyph dayKind={plan.dayKind} />
+          {isPast ? `${formatShortDate(plan.date)} · ` : ''}
           {KIND_LABEL[plan.dayKind]}
           {plan.rainedOut ? <span className="pill pill--rain">Rain swap</span> : null}
         </span>
@@ -56,7 +66,7 @@ export default function DayHero({ plan, todayKey, myEntry, exercises, onToggleRa
       </div>
 
       <h1 className="hero__title">{title}</h1>
-      <p className="hero__subtitle">{subtitle}</p>
+      {subtitle ? <p className="hero__subtitle">{subtitle}</p> : null}
 
       {isGym ? (
         <div className="hero__stats">
@@ -77,13 +87,19 @@ export default function DayHero({ plan, todayKey, myEntry, exercises, onToggleRa
             <span className="stat__label">sets</span>
           </div>
           <div className="stat">
-            <span className="stat__value">{stats.isComplete ? 'Complete' : 'In progress'}</span>
-            <span className="stat__label">your day</span>
+            <span className="stat__value">{stats.isComplete ? 'Complete' : isPast ? 'Incomplete' : 'In progress'}</span>
+            <span className="stat__label">status</span>
           </div>
         </div>
       ) : null}
 
-      {plan.rainedOut ? (
+      {isPast ? (
+        <button type="button" className="btn btn--quiet hero__rain-undo" onClick={onBackToToday}>
+          Back to today
+        </button>
+      ) : null}
+
+      {plan.rainedOut && !isPast ? (
         <button type="button" className="btn btn--quiet hero__rain-undo" onClick={onToggleRain}>
           Rain stopped? Back to basketball
         </button>

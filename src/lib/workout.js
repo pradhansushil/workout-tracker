@@ -41,6 +41,12 @@ export function getWeight(participant, exerciseId) {
   return Number.isFinite(numeric) && numeric > 0 ? numeric : 0;
 }
 
+/** The person's logged body weight for that day, or 0 when none. */
+export function getBodyWeight(participant) {
+  const numeric = Number(participant?.bodyWeight);
+  return Number.isFinite(numeric) && numeric > 0 ? numeric : 0;
+}
+
 export function isExerciseComplete(participant, exercise) {
   return getSetStates(participant, exercise).every(Boolean);
 }

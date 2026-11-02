@@ -8,8 +8,8 @@ import Toast from './components/Toast.jsx';
 import { repository } from './lib/repository.js';
 import { backend } from './firebase.js';
 import { clearIdentity, readIdentity, writeIdentity } from './lib/identity.js';
-import { DAY_KINDS, buildDayPlan, fromDateKey, toDateKey } from './lib/schedule.js';
-import { applySetChecked, applyWeight } from './lib/documents.js';
+import { DAY_KINDS, buildDayPlan, fromDateKey, normalizeWorkoutType, toDateKey } from './lib/schedule.js';
+import { applyBodyWeight, applySetChecked } from './lib/documents.js';
 import { msUntilTomorrow } from './lib/dates.js';
 import { getExercisesForType, getParticipantEntry } from './lib/workout.js';
 
@@ -36,8 +36,10 @@ export default function App() {
   const [rainState, setRainState] = useState(undefined);
   const [dayState, setDayState] = useState(undefined);
   const [scheduleMeta, setScheduleMeta] = useState(undefined);
-  const [needsSeed, setNeedsSeed] = useState(false);
   const [seeding, setSeeding] = useState(false);
+  // Which past day (if any) the person is looking at. null = today.
+  const [viewKey, setViewKey] = useState(null);
+  const [viewState, setViewState] = useState(undefined);
   const [error, setError] = useState(null);
   const [toast, setToast] = useState(null);
   const attemptedRef = useRef(new Set());
@@ -97,13 +99,40 @@ export default function App() {
     };
   }, [todayKey]);
 
+  // Only subscribe to a second day while the person is looking at a past one.
+  const isPastView = Boolean(viewKey) && viewKey < todayKey;
+  useEffect(() => {
+    if (!isPastView) return undefined;
+    let active = true;
+    const unsubscribe = repository.subscribeDay(
+      viewKey,
+      (doc) => {
+        if (active) setViewState({ dateKey: viewKey, doc });
+      },
+      (err) => {
+        console.error('[workout-tracker]', err);
+        if (active) setError(describeError(err));
+      },
+    );
+    return () => {
+      active = false;
+      unsubscribe();
+    };
+  }, [isPastView, viewKey]);
+
   const dataLoading =
     people === undefined ||
     rainState === undefined ||
     scheduleMeta === undefined ||
     dayState === undefined;
 
+  // The first-run question is asked as soon as someone has picked their name,
+  // whatever kind of day it is.
+  const needsSeed = !dataLoading && !normalizeWorkoutType(scheduleMeta?.lastWorkoutType);
+
   const dayDoc = dayState?.dateKey === todayKey ? dayState.doc : null;
+  const viewLoading = isPastView && viewState?.dateKey !== viewKey;
+  const viewDoc = isPastView && !viewLoading ? viewState.doc : null;
   const rain = rainState?.dateKey === todayKey ? rainState.value : false;
 
   const today = useMemo(() => fromDateKey(todayKey) ?? new Date(), [todayKey]);
@@ -137,9 +166,6 @@ export default function App() {
 
     ensureInFlightRef.current = repository
       .ensureDayType({ dateKey: todayKey })
-      .then((result) => {
-        if (result.needsSeed) setNeedsSeed(true);
-      })
       .catch((err) => {
         attemptedRef.current.delete(attemptKey);
         console.error('[workout-tracker] ensureDayType', err);
@@ -229,21 +255,25 @@ export default function App() {
     [runEntryWrite, workoutType, todayKey, activeIdentity],
   );
 
-  const handleCommitWeight = useCallback(
-    (exercise, weight) =>
+  const handleCommitBodyWeight = useCallback(
+    (weight) =>
       runEntryWrite(
-        (current) => applyWeight({ entry: current, type: workoutType, exerciseId: exercise.id, weight }),
+        (current) => applyBodyWeight({ entry: current, type: workoutType, weight }),
         (nextEntry) =>
-          repository.setWeight({
+          repository.setBodyWeight({
             dateKey: todayKey,
             type: workoutType,
             personName: activeIdentity,
             entry: nextEntry,
-            exerciseId: exercise.id,
             weight,
           }),
       ),
     [runEntryWrite, workoutType, todayKey, activeIdentity],
+  );
+
+  const handleSelectDay = useCallback(
+    (dateKey) => setViewKey(dateKey === todayKey ? null : dateKey),
+    [todayKey],
   );
 
   const handleToggleRain = useCallback(async () => {
@@ -255,11 +285,10 @@ export default function App() {
   }, [todayKey, rain, showToast]);
 
   const handleSeed = useCallback(
-    async (type) => {
+    async (nextType) => {
       setSeeding(true);
       try {
-        await repository.ensureDayType({ dateKey: todayKey, seedType: type });
-        setNeedsSeed(false);
+        await repository.saveRotation({ nextType, dateKey: todayKey });
         setError(null);
       } catch (err) {
         setError(describeError(err));
@@ -318,7 +347,11 @@ export default function App() {
         error={error}
         onDismissError={() => setError(null)}
         onToggleSet={handleToggleSet}
-        onCommitWeight={handleCommitWeight}
+        onCommitBodyWeight={handleCommitBodyWeight}
+        viewKey={isPastView ? viewKey : null}
+        viewDoc={viewDoc}
+        viewLoading={viewLoading}
+        onSelectDay={handleSelectDay}
         onToggleRain={handleToggleRain}
         onSwitchIdentity={handleSwitchIdentity}
       />

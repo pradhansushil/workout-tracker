@@ -37,7 +37,7 @@ describe('App — first run', () => {
     render(<App />);
 
     await signIn();
-    const seedTitle = await screen.findByText(/Which rotation starts today/i);
+    const seedTitle = await screen.findByText(/Which workout is up next/i);
     expect(seedTitle).toBeTruthy();
 
     fireEvent.click(screen.getByRole('button', { name: /Upper Body/i }));
@@ -64,6 +64,36 @@ describe('App — first run', () => {
       expect(screen.getByRole('heading', { name: 'Lower Body' })).toBeTruthy();
     });
     expect(screen.queryByText('Who are you?')).toBeNull();
+  });
+});
+
+describe('App — rotation question on a non-gym day', () => {
+  it('asks right away on a basketball day, and the next gym day follows the answer', async () => {
+    setNow('2026-10-27T09:00:00'); // Tuesday
+    render(<App />);
+    await signIn();
+    await screen.findByText(/Which workout is up next/i);
+
+    fireEvent.click(screen.getByRole('button', { name: /Lower Body/i }));
+    await screen.findByRole('heading', { name: 'Basketball' });
+    expect(screen.queryByText(/Which workout is up next/i)).toBeNull();
+
+    // Thursday is the next gym day -> Lower, exactly what was picked.
+    cleanup();
+    localStorage.setItem('workoutTracker:identity', 'Person A');
+    setNow('2026-10-29T09:00:00');
+    render(<App />);
+    await screen.findByRole('heading', { name: 'Lower Body' });
+  });
+
+  it('a rain day right after answering uses the answer too', async () => {
+    setNow('2026-10-27T09:00:00'); // Tuesday
+    render(<App />);
+    await signIn();
+    fireEvent.click(await screen.findByRole('button', { name: /Upper Body/i }));
+    await screen.findByRole('heading', { name: 'Basketball' });
+    fireEvent.click(screen.getByRole('button', { name: /It’s raining — go to gym/i }));
+    await screen.findByRole('heading', { name: 'Upper Body' });
   });
 });
 
@@ -108,15 +138,19 @@ describe('App — gym day behaviour', () => {
     });
     expect(setButtons.every((button) => button.getAttribute('aria-checked') === 'true')).toBe(true);
 
-    const weight = within(card).getByLabelText(/Working weight/i);
+    // The exercise card no longer has its own weight box…
+    expect(within(card).queryByLabelText(/weight/i)).toBeNull();
+    // …there is a single body-weight card instead.
+    const weight = screen.getByLabelText(/Body weight in pounds/i);
     fireEvent.focus(weight);
-    fireEvent.change(weight, { target: { value: '135' } });
+    fireEvent.change(weight, { target: { value: '182.5' } });
     fireEvent.blur(weight);
 
     await waitFor(() => {
       const stored = JSON.parse(localStorage.getItem('workoutTracker:demo:day:2026-10-26'));
-      expect(stored.participants['Person A'].exercises['chest-press'].weight).toBe(135);
+      expect(stored.participants['Person A'].bodyWeight).toBe(182.5);
     });
+    expect(screen.getAllByLabelText(/Body weight in pounds/i)).toHaveLength(1);
   });
 
   it('survives rapid consecutive taps without clobbering sets', async () => {
@@ -138,11 +172,50 @@ describe('App — gym day behaviour', () => {
     expect(buttons.every((button) => button.getAttribute('aria-checked') === 'true')).toBe(true);
   });
 
-  it('shows other people’s progress read-only', async () => {
+  it('keeps the squad card but has no "mandatory" subtitle and no per-exercise stats for others', () => {
+    expect(screen.getByLabelText(/Everyone’s progress/i)).toBeTruthy();
+    expect(screen.queryByText(/Mandatory gym day/i)).toBeNull();
+    expect(screen.queryByLabelText(/Other people’s progress/i)).toBeNull();
+  });
+
+  it('shows the wall sits strip above the exercises', () => {
+    const strip = screen.getByText(/Supplemental Tendon Isometrics/i);
+    const exercises = screen.getByRole('heading', { name: 'Exercises' });
+    expect(
+      strip.compareDocumentPosition(exercises) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
+  it('lets you open a past day read-only and come back to today', async () => {
+    // Check one set on Monday, then jump to Thursday.
     const card = screen.getByRole('heading', { name: 'Chest Press (Machine)' }).closest('article');
-    const others = within(card).getByLabelText(/Other people’s progress/i);
-    expect(within(others).getByText('Person B')).toBeTruthy();
-    expect(within(others).queryByRole('checkbox')).toBeNull();
+    fireEvent.click(within(card).getAllByRole('checkbox')[0]);
+    await waitFor(() => {
+      const stored = JSON.parse(localStorage.getItem('workoutTracker:demo:day:2026-10-26'));
+      expect(stored.participants['Person A'].exercises['chest-press'].sets[0]).toBe(true);
+    });
+
+    cleanup();
+    localStorage.setItem('workoutTracker:identity', 'Person A');
+    setNow('2026-10-29T09:00:00'); // Thursday
+    render(<App />);
+    await screen.findByRole('heading', { name: 'Lower Body' });
+
+    fireEvent.click(screen.getByRole('button', { name: /Mon, Oct 26/ }));
+    await screen.findByRole('heading', { name: 'Upper Body' });
+    expect(screen.getByText(/Past session — view only/i)).toBeTruthy();
+    const past = screen.getByRole('heading', { name: 'Chest Press (Machine)' }).closest('article');
+    const boxes = within(past).getAllByRole('checkbox');
+    expect(boxes[0].getAttribute('aria-checked')).toBe('true');
+    expect(boxes.every((box) => box.disabled)).toBe(true);
+
+    fireEvent.click(screen.getByRole('button', { name: /Back to today/i }));
+    await screen.findByRole('heading', { name: 'Lower Body' });
+  });
+
+  it('does not let you open a future day', () => {
+    const future = screen.getByRole('button', { name: /Tue, Oct 27/ });
+    expect(future.disabled).toBe(true);
   });
 });
 
@@ -240,7 +313,7 @@ describe('App — adding a person', () => {
     });
     fireEvent.click(screen.getByRole('button', { name: /Add & continue/i }));
 
-    await screen.findByText(/Which rotation starts today/i);
+    await screen.findByText(/Which workout is up next/i);
     fireEvent.click(screen.getByRole('button', { name: /Upper Body/i }));
 
     await screen.findByRole('heading', { name: 'Upper Body' });

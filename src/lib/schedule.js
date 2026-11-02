@@ -278,10 +278,8 @@ export function getDaySubtitle(plan) {
   if (!plan) return '';
   const { dayKind, baseKind, rainedOut } = plan;
   if (dayKind === DAY_KINDS.GYM) {
-    if (baseKind === DAY_KINDS.BASKETBALL && rainedOut) {
-      return 'Rain called it — basketball swapped for the gym.';
-    }
-    return 'Mandatory gym day on the rotation.';
+    // The title and the "Rain swap" pill already say everything a gym day needs.
+    return '';
   }
   if (dayKind === DAY_KINDS.BASKETBALL) {
     return 'Court day. Rain? Flip it to a gym session below.';
@@ -311,13 +309,18 @@ export function getNextGymDay(date = new Date(), { includeToday = false } = {}) 
  * Base (rain-agnostic) schedule for a 7-day strip, Monday first.
  * Rain flags are only ever known for "today" in this phase.
  */
-export function getWeekPreview(date = new Date(), { rainedOut = false } = {}) {
+export function getWeekPreview(
+  date = new Date(),
+  { rainedOut = false, todayKey: todayKeyOverride = null } = {},
+) {
   const day = date instanceof Date ? new Date(date) : fromDateKey(date);
   if (!day) return [];
   const weekday = day.getDay();
   const mondayOffset = weekday === 0 ? -6 : 1 - weekday;
   const monday = new Date(day.getFullYear(), day.getMonth(), day.getDate() + mondayOffset);
-  const todayKey = toDateKey(day);
+  // `todayKey` lets the strip show an earlier week while still knowing which
+  // real day is "today".
+  const todayKey = todayKeyOverride ?? toDateKey(day);
 
   return Array.from({ length: 7 }, (_, index) => {
     const current = new Date(
@@ -338,4 +341,19 @@ export function getWeekPreview(date = new Date(), { rainedOut = false } = {}) {
       isPast: currentKey < todayKey,
     };
   });
+}
+
+/**
+ * First-run choice: "which workout is up NEXT?".
+ *
+ * We store the OPPOSITE type with a date in the past, so the very next gym day
+ * (today, if it's a gym day, or any later one) flips to the type the person
+ * picked. This works the same on a basketball day as on a gym day.
+ */
+export function buildRotationSeedMeta(nextType, todayKey) {
+  const next = normalizeWorkoutType(nextType);
+  const today = fromDateKey(todayKey);
+  if (!next || !today) throw new Error('buildRotationSeedMeta: bad input');
+  const yesterday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
+  return { lastWorkoutType: flipWorkoutType(next), lastWorkoutDate: toDateKey(yesterday) };
 }

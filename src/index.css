@@ -144,7 +144,7 @@ ul {
 
 .app {
   width: 100%;
-  max-width: 780px;
+  max-width: 860px;
   margin: 0 auto;
   padding: calc(env(safe-area-inset-top, 0px) + 18px) 16px
     calc(env(safe-area-inset-bottom, 0px) + 40px);
@@ -1601,4 +1601,126 @@ ul {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* ------------------------------------------------- layout: hero + weight */
+
+.top-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 18px;
+}
+
+@media (min-width: 620px) {
+  .top-row--split {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    align-items: stretch;
+  }
+}
+
+.weight-card {
+  justify-content: space-between;
+}
+
+.weight-card .weight {
+  min-width: 0;
+}
+
+/* ------------------------------------------------------------ week strip */
+
+.week-wrap {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.week-wrap .week {
+  flex: 1;
+  min-width: 0;
+}
+
+.week-nav {
+  flex: none;
+  width: 30px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-dim);
+  border-radius: var(--radius-sm);
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.week-nav:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+button.week__day {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+button.week__day:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.week__day.is-past:not(:disabled) {
+  opacity: 0.85;
+}
+
+.week__day.is-selected {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  opacity: 1;
+}
+
+/* ------------------------------------------------- wall sits (compact strip) */
+
+.strip {
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+}
+
+.strip__summary {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 12px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.strip__summary::-webkit-details-marker {
+  display: none;
+}
+
+.strip__title {
+  font-size: 0.85rem;
+  font-weight: 650;
+}
+
+.strip__hint {
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.strip__body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 10px;
+}
+
+.top-side {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.top-side .squad {
+  grid-template-columns: minmax(0, 1fr);
 }

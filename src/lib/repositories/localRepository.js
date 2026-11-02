@@ -10,6 +10,7 @@ import {
   DEFAULT_PEOPLE,
   addMissingParticipants,
   applySetChecked,
+  applyBodyWeight,
   applyWeight,
   createDayDoc,
   createPersonEntry,
@@ -18,6 +19,7 @@ import {
 } from '../documents.js';
 import {
   RESOLUTION_ACTIONS,
+  buildRotationSeedMeta,
   normalizeWorkoutType,
   resolveWorkoutType,
 } from '../schedule.js';
@@ -220,6 +222,31 @@ export function createLocalRepository() {
     emit(`day:${dateKey}`);
   }
 
+  async function saveRotation({ nextType, dateKey }) {
+    const meta = read(KEYS.schedule, null);
+    // Only ever set once; never overwrite a real schedule.
+    if (normalizeWorkoutType(meta?.lastWorkoutType)) return { saved: false };
+    write(KEYS.schedule, { ...buildRotationSeedMeta(nextType, dateKey), updatedAt: Date.now() });
+    emit('schedule');
+    return { saved: true };
+  }
+
+  async function setBodyWeight({ dateKey, type, personName, entry, weight }) {
+    const day = read(KEYS.day(dateKey), null);
+    if (!day) throw new Error('Today’s workout has not been created yet.');
+    const nextEntry = applyBodyWeight({
+      entry: entry ?? day.participants?.[personName] ?? createPersonEntry(type),
+      type,
+      weight,
+    });
+    write(KEYS.day(dateKey), {
+      ...day,
+      participants: { ...day.participants, [personName]: nextEntry },
+      updatedAt: Date.now(),
+    });
+    emit(`day:${dateKey}`);
+  }
+
   /** Test/tooling helper — wipes the demo store. */
   function resetDemoData() {
     for (const key of Object.keys(localStorage)) {
@@ -242,6 +269,8 @@ export function createLocalRepository() {
     setRain,
     setSetChecked,
     setWeight,
+    saveRotation,
+    setBodyWeight,
     resetDemoData,
   };
 }

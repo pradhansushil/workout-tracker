@@ -10,6 +10,7 @@ import {
   getBaseDayKind,
   getDayKind,
   getWeekPreview,
+  buildRotationSeedMeta,
   normalizeWorkoutType,
   resolveWorkoutType,
   toDateKey,
@@ -262,5 +263,31 @@ describe('getWeekPreview', () => {
     expect(week[0].dateKey).toBe(MONDAY);
     expect(week[6].dateKey).toBe(SUNDAY);
     expect(week[6].isToday).toBe(true);
+  });
+});
+
+describe('buildRotationSeedMeta', () => {
+  it('stores the opposite type with yesterday’s date so the next gym day is the pick', () => {
+    const meta = buildRotationSeedMeta('Upper', '2026-10-27');
+    expect(meta).toEqual({ lastWorkoutType: 'Lower', lastWorkoutDate: '2026-10-26' });
+    const result = resolveWorkoutType({ ...meta, todayKey: '2026-10-29' });
+    expect(result.type).toBe('Upper');
+  });
+
+  it('also works across a month boundary and on the same day', () => {
+    expect(buildRotationSeedMeta('Lower', '2026-11-01').lastWorkoutDate).toBe('2026-10-31');
+    const result = resolveWorkoutType({ ...buildRotationSeedMeta('Lower', '2026-11-02'), todayKey: '2026-11-02' });
+    expect(result.type).toBe('Lower');
+  });
+
+  it('rejects bad input', () => {
+    expect(() => buildRotationSeedMeta('Sideways', '2026-10-27')).toThrow();
+  });
+});
+
+describe('getWeekPreview for earlier weeks', () => {
+  it('marks every day of last week as past when todayKey is given', () => {
+    const week = getWeekPreview(fromDateKey('2026-10-26'), { todayKey: '2026-11-02' });
+    expect(week.every((day) => day.isPast && !day.isToday)).toBe(true);
   });
 });

@@ -4,6 +4,7 @@ import {
   DEFAULT_PEOPLE,
   addMissingParticipants,
   applySetChecked,
+  applyBodyWeight,
   applyWeight,
   createDayDoc,
   createPersonEntry,
@@ -219,5 +220,13 @@ describe('normalizeWeightInput', () => {
     expect(normalizeWeightInput('heavy').error).toBeTruthy();
     expect(normalizeWeightInput('-5').error).toBeTruthy();
     expect(normalizeWeightInput('9999').error).toBeTruthy();
+  });
+});
+
+describe('applyBodyWeight', () => {
+  it('stores, clears and validates a body weight', () => {
+    expect(applyBodyWeight({ entry: null, type: 'Upper', weight: '181.5' }).bodyWeight).toBe(181.5);
+    expect(applyBodyWeight({ entry: null, type: 'Upper', weight: null }).bodyWeight).toBeNull();
+    expect(() => applyBodyWeight({ entry: null, type: 'Upper', weight: 9000 })).toThrow();
   });
 });

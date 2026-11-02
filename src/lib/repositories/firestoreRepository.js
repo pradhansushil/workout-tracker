@@ -19,6 +19,7 @@ import {
   DEFAULT_PEOPLE,
   addMissingParticipants,
   applySetChecked,
+  applyBodyWeight,
   applyWeight,
   createDayDoc,
   createPersonEntry,
@@ -27,6 +28,7 @@ import {
 } from '../documents.js';
 import {
   RESOLUTION_ACTIONS,
+  buildRotationSeedMeta,
   normalizeWorkoutType,
   resolveWorkoutType,
 } from '../schedule.js';
@@ -270,6 +272,34 @@ export function createFirestoreRepository(db) {
     );
   }
 
+  /** First-run: remember which workout is up next. Never overwrites a real schedule. */
+  async function saveRotation({ nextType, dateKey }) {
+    return runTransaction(db, async (transaction) => {
+      const snap = await transaction.get(scheduleRef());
+      const meta = snap.exists() ? snap.data() : null;
+      if (normalizeWorkoutType(meta?.lastWorkoutType)) return { saved: false };
+      transaction.set(
+        scheduleRef(),
+        { ...buildRotationSeedMeta(nextType, dateKey), updatedAt: serverTimestamp() },
+        { merge: true },
+      );
+      return { saved: true };
+    });
+  }
+
+  async function setBodyWeight({ dateKey, type, personName, entry, weight }) {
+    const current = (await resolveEntry({ dateKey, personName, entry })) ?? createPersonEntry(type);
+    const nextEntry = applyBodyWeight({ entry: current, type, weight });
+    await setDoc(
+      dayRef(dateKey),
+      {
+        participants: { [personName]: { bodyWeight: nextEntry.bodyWeight } },
+        updatedAt: serverTimestamp(),
+      },
+      { merge: true },
+    );
+  }
+
   return {
     backend: 'firestore',
     subscribeDay,
@@ -282,5 +312,7 @@ export function createFirestoreRepository(db) {
     setRain,
     setSetChecked,
     setWeight,
+    saveRotation,
+    setBodyWeight,
   };
 }

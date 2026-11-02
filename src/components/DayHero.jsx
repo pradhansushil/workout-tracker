@@ -44,7 +44,8 @@ export default function DayHero({
   const isGym = plan.dayKind === DAY_KINDS.GYM;
   const stats = getParticipantStats(myEntry, exercises);
   const title = getDayTitle(plan.dayKind, plan.workoutType);
-  const subtitle = getDaySubtitle(plan);
+  // The basketball subtitle points at a rain button that doesn't exist on past days.
+  const subtitle = isPast && plan.dayKind === DAY_KINDS.BASKETBALL ? '' : getDaySubtitle(plan);
 
   return (
     <section className={`hero hero--${plan.dayKind}`}>
@@ -59,7 +60,7 @@ export default function DayHero({
           <ProgressRing
             percent={stats.percent}
             size={62}
-            label={`${stats.percent}% of today’s exercises complete`}
+            label={`${stats.percent}% of exercises complete`}
             tone={stats.isComplete ? 'done' : 'accent'}
           />
         ) : null}

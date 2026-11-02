@@ -203,7 +203,9 @@ describe('App — gym day behaviour', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /Mon, Oct 26/ }));
     await screen.findByRole('heading', { name: 'Upper Body' });
-    expect(screen.getByText(/Past session — view only/i)).toBeTruthy();
+    // One in the Squad card and one above the exercises.
+    expect(screen.getAllByText(/Past session — view only/i)).toHaveLength(2);
+    expect(screen.queryByText(/Read-only for everyone but you/i)).toBeNull();
     const past = screen.getByRole('heading', { name: 'Chest Press (Machine)' }).closest('article');
     const boxes = within(past).getAllByRole('checkbox');
     expect(boxes[0].getAttribute('aria-checked')).toBe('true');
@@ -345,5 +347,26 @@ describe('App — week strip dots', () => {
     });
     // Wednesday the 28th has nothing saved, so it keeps the normal basketball label.
     expect(screen.getAllByRole('button', { name: /Oct 28/ })[0].getAttribute('aria-label')).toMatch(/Basketball/);
+  });
+});
+
+describe('App — wording on past days', () => {
+  it('does not tell you to flip rain on a past basketball day', async () => {
+    setNow('2026-10-30T09:00:00'); // Friday, a basketball day
+    localStorage.setItem('workoutTracker:identity', 'Person A');
+    localStorage.setItem(
+      'workoutTracker:demo:schedule',
+      JSON.stringify({ lastWorkoutType: 'Upper', lastWorkoutDate: '2026-10-29' }),
+    );
+    render(<App />);
+    await screen.findByRole('heading', { name: 'Basketball' });
+    // Today still shows the rain hint.
+    expect(screen.getByText(/Flip it to a gym session/i)).toBeTruthy();
+
+    // Tuesday the 27th was a basketball day with nothing saved.
+    fireEvent.click(screen.getAllByRole('button', { name: /Oct 27/ })[0]);
+    await screen.findByText(/there was no gym session to log/i);
+    expect(screen.queryByText(/Flip it to a gym session/i)).toBeNull();
+    expect(screen.getByRole('heading', { name: 'Basketball' })).toBeTruthy();
   });
 });

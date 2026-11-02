@@ -1,11 +1,13 @@
 import { getParticipantStats } from '../lib/workout.js';
 
-export default function SquadPanel({ people, participants, exercises, identity }) {
+export default function SquadPanel({ people, participants, exercises, identity, readOnly = false }) {
   return (
     <section aria-label="Everyone’s progress">
       <div className="section-heading">
         <h2 className="section-title">Squad</h2>
-        <span className="section-hint">Read-only for everyone but you</span>
+        <span className="section-hint">
+          {readOnly ? 'Past session — view only' : 'Read-only for everyone but you'}
+        </span>
       </div>
       <div className="squad">
         {people.map((person) => {

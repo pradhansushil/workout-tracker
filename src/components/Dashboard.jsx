@@ -145,6 +145,7 @@ export default function Dashboard({
                 participants={isPast ? viewDoc?.participants : dayDoc?.participants}
                 exercises={view.exercises}
                 identity={identity}
+                readOnly={isPast}
               />
               <WeightCard
                 value={getBodyWeight(view.entry)}

@@ -370,3 +370,20 @@ describe('App — wording on past days', () => {
     expect(screen.getByRole('heading', { name: 'Basketball' })).toBeTruthy();
   });
 });
+
+
+describe('App — adding a name that already exists', () => {
+  it('shows a message and does not sign anyone in', async () => {
+    setNow('2026-10-26T09:00:00'); // Monday
+    render(<App />);
+
+    await screen.findByText('Who are you?');
+    fireEvent.click(screen.getByRole('button', { name: /Add Person/i }));
+    fireEvent.change(screen.getByPlaceholderText('e.g. Sushil'), { target: { value: 'person a' } });
+    fireEvent.click(screen.getByRole('button', { name: /Add & continue/i }));
+
+    await screen.findByText(/already in the list/i);
+    expect(screen.getByText('Who are you?')).toBeTruthy();
+    expect(localStorage.getItem('workoutTracker:identity')).toBeNull();
+  });
+});

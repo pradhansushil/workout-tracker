@@ -110,7 +110,7 @@ describe('Firestore repository — bootstrap', () => {
   it('rejects duplicate and empty names', async () => {
     const repo = createFirestoreRepository(db);
     await repo.seedPeople();
-    await expect(repo.addPerson('person a')).resolves.toMatchObject({ added: false });
+    await expect(repo.addPerson('person a')).rejects.toThrow(/already in the list/);
     await expect(repo.addPerson('   ')).rejects.toThrow();
   });
 });

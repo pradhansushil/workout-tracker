@@ -102,7 +102,7 @@ export function createFirestoreRepository(db) {
     return runTransaction(db, async (transaction) => {
       const snap = await transaction.get(peopleRef());
       const names = snap.exists() ? snap.data()?.names ?? [] : [];
-      if (hasPerson(names, name)) return { name, added: false, names };
+      if (hasPerson(names, name)) throw new Error('That name is already in the list. Tap it above.');
       const nextNames = names.length > 0 ? [...names, name] : [...DEFAULT_PEOPLE, name];
       transaction.set(
         peopleRef(),

@@ -119,7 +119,7 @@ export function createLocalRepository() {
     if (!sanitized.ok) throw new Error(sanitized.error);
     const name = sanitized.name;
     const names = readPeople();
-    if (hasPerson(names, name)) return { name, added: false, names };
+    if (hasPerson(names, name)) throw new Error('That name is already in the list. Tap it above.');
     const nextNames = [...names, name];
     write(KEYS.people, nextNames);
     emit('people');

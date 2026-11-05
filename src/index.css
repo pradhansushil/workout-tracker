@@ -19,10 +19,13 @@
   --accent: #d7ff3e;
   --accent-soft: rgba(215, 255, 62, 0.12);
   --accent-ink: #101203;
+  --accent-text: #d7ff3e; /* lime used as TEXT colour */
   --accent-2: #7cc9ff;
+  --accent-2-ink: #041622; /* text on blue buttons */
   --accent-2-soft: rgba(124, 201, 255, 0.12);
   --done: #4ade80;
   --done-soft: rgba(74, 222, 128, 0.12);
+  --done-ink: #061b0d; /* text on green (done) fills */
   --danger: #ff7a68;
   --danger-soft: rgba(255, 122, 104, 0.12);
   --warning: #ffc247;
@@ -72,15 +75,18 @@
 
     --accent: #7fae00;
     --accent-soft: rgba(127, 174, 0, 0.14);
-    --accent-ink: #ffffff;
-    --accent-2: #0f7bbf;
-    --accent-2-soft: rgba(15, 123, 191, 0.1);
-    --done: #168a4a;
-    --done-soft: rgba(22, 138, 74, 0.12);
+    --accent-ink: #101203; /* dark text on the lime fill (7.2:1) */
+    --accent-text: #4f7300; /* darker olive for lime-coloured text (4.6:1+) */
+    --accent-2: #0b6ca8;
+    --accent-2-soft: rgba(11, 108, 168, 0.1);
+    --accent-2-ink: #ffffff;
+    --done: #12793f;
+    --done-soft: rgba(18, 121, 63, 0.12);
+    --done-ink: #ffffff;
     --danger: #c62f1c;
     --danger-soft: rgba(198, 47, 28, 0.09);
-    --warning: #a76a00;
-    --warning-soft: rgba(167, 106, 0, 0.12);
+    --warning: #8a5500;
+    --warning-soft: rgba(138, 85, 0, 0.12);
 
     --shadow-1: 0 1px 2px rgba(16, 24, 8, 0.06);
     --shadow-2: 0 14px 30px -20px rgba(16, 24, 8, 0.35);
@@ -468,7 +474,7 @@ ul {
 .hero__glyph {
   width: 18px;
   height: 18px;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .hero--basketball .hero__glyph {
@@ -617,7 +623,7 @@ ul {
 }
 
 .week__day.is-today .week__letter {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .week__date {
@@ -951,7 +957,7 @@ ul {
 }
 
 .pill--target {
-  color: var(--accent);
+  color: var(--accent-text);
   border-color: color-mix(in srgb, var(--accent) 35%, transparent);
   background: var(--accent-soft);
   font-variant-numeric: tabular-nums;
@@ -1071,7 +1077,7 @@ ul {
 .exercise.is-complete .set-toggle.is-on {
   background: var(--done);
   border-color: var(--done);
-  color: #061b0d;
+  color: var(--done-ink);
 }
 
 .weight {
@@ -1356,7 +1362,7 @@ ul {
 .btn--rain {
   background: var(--accent-2);
   border-color: var(--accent-2);
-  color: #041622;
+  color: var(--accent-2-ink);
 }
 
 .btn--large {
@@ -1531,7 +1537,7 @@ ul {
   font-weight: 800;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .modal__title {

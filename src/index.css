@@ -984,6 +984,27 @@ ul {
   margin-left: 0;
 }
 
+.badge {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.badge--done {
+  color: var(--done);
+  /* solid base under the soft green so the card's own tint can't lower contrast */
+  background: linear-gradient(var(--done-soft), var(--done-soft)), var(--surface);
+  border-color: color-mix(in srgb, var(--done) 35%, transparent);
+}
+
 .exercise__status {
   width: 22px;
   height: 22px;

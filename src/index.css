@@ -263,16 +263,14 @@ ul {
   border: 0;
   background: var(--surface-3);
   color: var(--text-dim);
-  font-size: var(--fs-xs);
-  font-weight: 600;
-  padding: 5px 10px;
-  border-radius: 999px;
   transition: background 0.15s ease, color 0.15s ease;
 }
 
-.identity-chip__switch:hover {
-  background: var(--border-strong);
-  color: var(--text);
+@media (hover: hover) {
+  .identity-chip__switch:hover {
+    background: var(--border-strong);
+    color: var(--text);
+  }
 }
 
 .dot-live {
@@ -728,11 +726,6 @@ ul {
   border: 1px solid color-mix(in srgb, var(--danger) 45%, transparent);
   background: transparent;
   color: var(--text);
-  border-radius: 999px;
-  padding: 5px 11px;
-  font-size: var(--fs-xs);
-  font-weight: 600;
-  flex: none;
 }
 
 /* -------------------------------------------------------- section headers */
@@ -1079,8 +1072,10 @@ ul {
   transform: scale(0.94);
 }
 
-.set-toggle:hover:not(:disabled) {
-  border-color: var(--accent);
+@media (hover: hover) {
+  .set-toggle:hover:not(:disabled) {
+    border-color: var(--accent);
+  }
 }
 
 .set-toggle:disabled,
@@ -1323,6 +1318,48 @@ ul {
 
 /* ---------------------------------------------------------------- buttons */
 
+/* Small pills (Switch, Dismiss) share one size. */
+.identity-chip__switch,
+.banner__dismiss {
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  flex: none;
+}
+
+/* Small controls keep their look but get a bigger invisible tap area
+   (about 44px tall; arrows about 45px wide). */
+.identity-chip__switch,
+.banner__dismiss,
+.btn--quiet,
+.week-nav {
+  position: relative;
+}
+
+.identity-chip__switch::after,
+.banner__dismiss::after,
+.btn--quiet::after {
+  content: "";
+  position: absolute;
+  inset: -10px -6px;
+}
+
+.week-nav::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+/* Arrows grow outward into the page margin, only 3px inward (the gap is 6px). */
+.week-wrap > .week-nav:first-child::after {
+  inset: 0 -3px 0 -12px;
+}
+
+.week-wrap > .week-nav:last-child::after {
+  inset: 0 -12px 0 -3px;
+}
+
 .btn {
   border-radius: 999px;
   border: 1px solid var(--border-strong);
@@ -1354,16 +1391,20 @@ ul {
   color: var(--accent-ink);
 }
 
-.btn--primary:hover:not(:disabled) {
-  filter: brightness(1.06);
+@media (hover: hover) {
+  .btn--primary:hover:not(:disabled) {
+    filter: brightness(1.06);
+  }
 }
 
 .btn--ghost {
   background: transparent;
 }
 
-.btn--ghost:hover {
-  background: var(--surface-2);
+@media (hover: hover) {
+  .btn--ghost:hover {
+    background: var(--surface-2);
+  }
 }
 
 .btn--quiet {
@@ -1376,8 +1417,10 @@ ul {
   text-underline-offset: 3px;
 }
 
-.btn--quiet:hover {
-  color: var(--text);
+@media (hover: hover) {
+  .btn--quiet:hover {
+    color: var(--text);
+  }
 }
 
 .btn--rain {
@@ -1400,9 +1443,11 @@ ul {
   padding: 12px;
 }
 
-.btn--dashed:hover {
-  color: var(--text);
-  border-color: var(--accent);
+@media (hover: hover) {
+  .btn--dashed:hover {
+    color: var(--text);
+    border-color: var(--accent);
+  }
 }
 
 /* ------------------------------------------------------------ identity gate */
@@ -1456,9 +1501,11 @@ ul {
   transition: border-color 0.15s ease, background 0.15s ease;
 }
 
-.person-button:hover {
-  border-color: var(--accent);
-  background: var(--accent-soft);
+@media (hover: hover) {
+  .person-button:hover {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
 }
 
 .person-button__name {

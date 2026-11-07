@@ -245,18 +245,37 @@ ul {
   border-radius: 999px;
   border: 1px solid var(--border);
   background: var(--surface);
+  /* Let the chip shrink on narrow phones instead of pushing past the edge. */
+  min-width: 0;
 }
 
+/* A plain block (not a flex row) so a long name really ends in "…". */
 .identity-chip__name {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+  display: block;
+  min-width: 0;
   font-size: var(--fs-sm);
   font-weight: 600;
   max-width: 120px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.identity-chip__name .dot-live {
+  display: inline-block;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+/* Under 360px there is no room for the round letter badge; the name says it already. */
+@media (max-width: 359px) {
+  .identity-chip .avatar {
+    display: none;
+  }
+
+  .identity-chip {
+    padding-left: 12px;
+  }
 }
 
 .identity-chip__switch {
